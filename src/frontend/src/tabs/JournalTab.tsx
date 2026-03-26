@@ -33,6 +33,9 @@ import {
 } from "../hooks/useQueries";
 import type { JournalEntry } from "../hooks/useQueries";
 import { MOOD_META } from "../types/kenori";
+import { playSound, stopSound } from "../utils/ambientSound";
+import type { SoundType } from "../utils/ambientSound";
+import { incrementCalmPoints } from "../utils/calmPoints";
 import { formatEntryDate } from "../utils/dateFormat";
 
 interface Props {
@@ -41,6 +44,20 @@ interface Props {
 }
 
 const MOODS = [Mood.happy, Mood.excited, Mood.neutral, Mood.sad, Mood.anxious];
+
+const REWARD_MSGS = [
+  "+1 calm point 🌙",
+  "you showed up today 💛",
+  "one thought at a time 🌿",
+  "that took courage 🕊️",
+  "your feelings matter 🌸",
+];
+
+const SOUND_OPTIONS: { type: SoundType; emoji: string; label: string }[] = [
+  { type: "rain", emoji: "🌧", label: "Rain" },
+  { type: "cafe", emoji: "☕", label: "Café" },
+  { type: "night", emoji: "🌙", label: "Night" },
+];
 
 function EditEntryDialog({
   entry,
@@ -167,6 +184,7 @@ export default function JournalTab({ userData, isLoading }: Props) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [mood, setMood] = useState<Mood>(Mood.neutral);
+  const [activeSound, setActiveSound] = useState<SoundType | null>(null);
   const addEntry = useAddJournalEntry();
   const deleteEntry = useDeleteJournalEntry();
   const editEntry = useEditJournalEntry();
@@ -191,7 +209,9 @@ export default function JournalTab({ userData, isLoading }: Props) {
       setBody("");
       setMood(Mood.neutral);
       setOpen(false);
-      toast.success("Entry saved 📓");
+      incrementCalmPoints();
+      const msg = REWARD_MSGS[Math.floor(Math.random() * REWARD_MSGS.length)];
+      toast.success(msg);
     } catch {
       toast.error("Couldn't save entry");
     }
@@ -213,11 +233,29 @@ export default function JournalTab({ userData, isLoading }: Props) {
     await editEntry.mutateAsync({ originalTimestamp, updated });
   };
 
+  const handleSoundToggle = (type: SoundType) => {
+    if (activeSound === type) {
+      stopSound();
+      setActiveSound(null);
+    } else {
+      playSound(type);
+      setActiveSound(type);
+    }
+  };
+
+  const handleDialogOpenChange = (o: boolean) => {
+    setOpen(o);
+    if (!o) {
+      stopSound();
+      setActiveSound(null);
+    }
+  };
+
   return (
     <div className="px-5 py-6 space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-3xl font-bold">Journal</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleDialogOpenChange}>
           <DialogTrigger asChild>
             <Button
               data-ocid="journal.open_modal_button"
@@ -237,6 +275,28 @@ export default function JournalTab({ userData, isLoading }: Props) {
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-2">
+              {/* Ambient sounds */}
+              <div className="space-y-1.5">
+                <p className="text-xs text-muted-foreground">ambient sounds</p>
+                <div className="flex gap-2">
+                  {SOUND_OPTIONS.map(({ type, emoji, label }) => (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => handleSoundToggle(type)}
+                      data-ocid={`journal.sound.${type}.toggle`}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                        activeSound === type
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted/60 text-muted-foreground border border-border/50"
+                      }`}
+                    >
+                      {emoji} {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <Input
                 placeholder="Give it a title…"
                 value={title}

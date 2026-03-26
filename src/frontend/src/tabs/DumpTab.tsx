@@ -2,12 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import { CALMING_RESPONSES } from "../types/kenori";
+import { CALMING_RESPONSES, MOOD_FLIP_RESPONSES } from "../types/kenori";
 
 export default function DumpTab() {
   const [text, setText] = useState("");
   const [response, setResponse] = useState<string | null>(null);
   const [released, setReleased] = useState(false);
+  const [flipped, setFlipped] = useState<string | null>(null);
+  const [flippedOnce, setFlippedOnce] = useState(false);
 
   const handleRelease = () => {
     if (!text.trim()) return;
@@ -20,6 +22,14 @@ export default function DumpTab() {
     setText("");
     setResponse(null);
     setReleased(false);
+    setFlipped(null);
+    setFlippedOnce(false);
+  };
+
+  const handleMoodFlip = () => {
+    const idx = Math.floor(Math.random() * MOOD_FLIP_RESPONSES.length);
+    setFlipped(MOOD_FLIP_RESPONSES[idx]);
+    setFlippedOnce(true);
   };
 
   return (
@@ -42,10 +52,10 @@ export default function DumpTab() {
           >
             <div className="kenori-card space-y-1 p-4">
               <p className="text-xs text-muted-foreground mb-2">
-                Your thoughts stay here — they’re not saved anywhere.
+                Your thoughts stay here — they're not saved anywhere.
               </p>
               <Textarea
-                placeholder="What’s been spinning in your head? Write it all down…"
+                placeholder="What's been spinning in your head? Write it all down…"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 data-ocid="dump.textarea"
@@ -94,6 +104,35 @@ export default function DumpTab() {
                 {response}
               </p>
             </motion.div>
+
+            {/* Mood Flip */}
+            <Button
+              onClick={handleMoodFlip}
+              variant="outline"
+              data-ocid="dump.mood_flip.button"
+              className="w-full rounded-full py-5 border-border"
+            >
+              {flippedOnce ? "Flip again ✨" : "Mood Flip ✨"}
+            </Button>
+
+            <AnimatePresence>
+              {flipped && (
+                <motion.div
+                  key={flipped}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.35 }}
+                  data-ocid="dump.mood_flip.card"
+                  className="kenori-card text-center py-6 space-y-2"
+                >
+                  <div className="text-2xl">🌱</div>
+                  <p className="font-heading text-base font-medium leading-snug px-4">
+                    {flipped}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <Button
               onClick={handleReset}

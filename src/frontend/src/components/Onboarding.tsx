@@ -1,24 +1,32 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DEFAULT_AVATAR_ID } from "@/config/avatarPresets";
 import { Loader2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
+import AvatarPreview from "./AvatarPreview";
+import AvatarSelectorGrid from "./AvatarSelectorGrid";
 
 interface Props {
-  onComplete: (name: string, theme: "light" | "dark") => Promise<void>;
+  onComplete: (
+    name: string,
+    theme: "light" | "dark",
+    avatarId: string,
+  ) => Promise<void>;
 }
 
 export default function Onboarding({ onComplete }: Props) {
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [avatarId, setAvatarId] = useState(DEFAULT_AVATAR_ID);
   const [saving, setSaving] = useState(false);
 
   const handleFinish = async () => {
     if (!name.trim()) return;
     setSaving(true);
     try {
-      await onComplete(name.trim(), theme);
+      await onComplete(name.trim(), theme, avatarId);
     } finally {
       setSaving(false);
     }
@@ -52,7 +60,7 @@ export default function Onboarding({ onComplete }: Props) {
                 data-ocid="onboarding.primary_button"
                 className="w-full rounded-full py-6 text-base font-semibold"
               >
-                Let’s get started ✨
+                Let's get started ✨
               </Button>
             </motion.div>
           )}
@@ -152,6 +160,39 @@ export default function Onboarding({ onComplete }: Props) {
                 </button>
               </div>
               <Button
+                onClick={() => setStep(3)}
+                data-ocid="onboarding.continue_button"
+                className="w-full rounded-full py-6 text-base font-semibold"
+              >
+                Continue →
+              </Button>
+            </motion.div>
+          )}
+
+          {step === 3 && (
+            <motion.div
+              key="avatar"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-6"
+            >
+              <div className="text-center space-y-3">
+                <div className="flex justify-center">
+                  <AvatarPreview avatarId={avatarId} size={72} />
+                </div>
+                <div className="space-y-1">
+                  <h2 className="font-heading text-3xl font-bold text-foreground">
+                    🪞 Choose your avatar
+                  </h2>
+                  <p className="text-muted-foreground text-sm">
+                    Pick the one that feels like you.
+                  </p>
+                </div>
+              </div>
+              <AvatarSelectorGrid selected={avatarId} onChange={setAvatarId} />
+              <Button
                 onClick={handleFinish}
                 disabled={saving}
                 data-ocid="onboarding.save_button"
@@ -163,7 +204,7 @@ export default function Onboarding({ onComplete }: Props) {
                     up…
                   </>
                 ) : (
-                  `Welcome, ${name} 🌸`
+                  `Let's go 🌸`
                 )}
               </Button>
             </motion.div>

@@ -1,40 +1,33 @@
-# KENORI – Phase 4: Core App System
+# KENORI – Phase 6: AI Chat Tab
 
 ## Current State
-- Full journaling, mood tracking, notes, Overthink Dump, cycle tracking all functional
-- Backend stores all data per-user via Internet Identity principal
-- Internet Identity login (no email/password — email is disabled on this plan)
-- 6-tab navigation: Home, Journal, Mood, Notes, Dump, Profile
-- Journal entries show date but no smart formatting (Today/Yesterday)
-- No edit or delete functionality for journal entries or notes
-- Avatar system with semi-realistic 2D SVG customization
+KENORI is a journaling app with 4 tabs (Home, Journal, Mood, Profile). Backend stores journal entries, notes, mood logs, and user profile. http-outcalls component is now selected for AI API integration.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Smart date labels on journal entries: "Today", "Yesterday", or formatted full date + time
-- Edit journal entry (title, body, mood) via inline edit dialog
-- Delete journal entry with confirmation
-- Delete note/task by swiping or via delete button
-- Edit note/task text inline
-- Backend methods: `deleteJournalEntry(timestamp)`, `editJournalEntry(originalTimestamp, updatedEntry)`, `deleteNoteAtIndex(index)`, `updateNoteAtIndex(index, note)`
+- `ChatMessage` type: { role: text ("user"/"assistant"), content: text, timestamp: Time }
+- `ChatMemoryEntry` type: { key: text, value: text, timestamp: Time }
+- Backend functions: `saveChatMessage`, `getChatHistory`, `saveChatMemories`, `getChatMemories`, `sendChatMessage` (HTTP outcall to OpenAI API)
+- `ChatTab` frontend component — texting-style UI with scrollable message history
+- Memory extraction: frontend extracts key facts (feelings, names, concerns) from user messages and stores them; these are passed into the AI system prompt
+- 5th tab (💬 Chat) in bottom nav
+- ActiveTab type extended with "chat"
 
 ### Modify
-- Bottom navigation simplified from 6 tabs to 4: Home, Journal, Mood, Profile
-- Overthink Dump moved into Home tab as a quick-access card section
-- Notes/Tasks moved into Home tab as a section (or keep as standalone but not in main nav)
-- Keep Notes accessible from Home with a quick link
+- `ActiveTab` type: add "chat"
+- `TabBar`: add 💬 Chat tab (5th)
+- `App.tsx`: render ChatTab when activeTab === "chat"
+- Backend `AllUserData`: optionally extend or keep chat data separate
 
 ### Remove
-- "Notes" and "Dump" as standalone main nav tabs (consolidate into Home or Profile)
+- Nothing
 
 ## Implementation Plan
-1. Add backend methods for delete/edit journal entries and notes
-2. Regenerate backend bindings
-3. Update TabBar to 4 tabs: Home, Journal, Mood, Profile
-4. Add `useDeleteJournalEntry`, `useEditJournalEntry`, `useDeleteNote`, `useUpdateNote` hooks
-5. Add smart date formatter utility (Today / Yesterday / full date)
-6. Update JournalTab: show smart dates, add edit/delete buttons per entry
-7. Update HomeTab: embed Notes section and Dump section as cards
-8. Keep NotesTab/DumpTab code but route them through HomeTab quick access
-9. Update ActiveTab type to remove notes/dump from main nav
+1. Add ChatMessage and ChatMemoryEntry types to backend
+2. Add backend functions for storing/retrieving chat history and memory
+3. Add `sendChatMessage` function using HTTP outcalls to OpenAI (gpt-4o-mini), with system prompt including user's name, memory context, and instructions to be short/calm/supportive
+4. Regenerate backend bindings
+5. Add ChatTab frontend component with message bubbles, input, send button
+6. Memory system: extract keywords (feelings, names) from user messages client-side, store to backend
+7. Update TabBar and App.tsx

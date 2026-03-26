@@ -37,6 +37,16 @@ export interface Note {
     text: string;
     completed: boolean;
 }
+export interface ChatMessage {
+    role: string;
+    content: string;
+    timestamp: Time;
+}
+export interface ChatMemoryEntry {
+    key: string;
+    value: string;
+    timestamp: Time;
+}
 export enum Mood {
     sad = "sad",
     anxious = "anxious",
@@ -66,4 +76,9 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     logDailyMood(mood: DailyMood): Promise<void>;
     saveUserProfile(profile: UserProfile): Promise<void>;
+    getChatHistory(): Promise<Array<ChatMessage>>;
+    getChatMemories(): Promise<Array<ChatMemoryEntry>>;
+    saveChatMemories(entries: Array<ChatMemoryEntry>): Promise<void>;
+    sendChatMessage(userMessage: string, memoryContext: string, userName: string): Promise<string>;
+    setOpenAIKey(key: string): Promise<void>;
 }

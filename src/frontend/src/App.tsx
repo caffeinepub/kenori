@@ -5,6 +5,7 @@ import Onboarding from "./components/Onboarding";
 import TabBar from "./components/TabBar";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import { useAllUserData, useSaveProfile } from "./hooks/useQueries";
+import ChatTab from "./tabs/ChatTab";
 import HomeTab from "./tabs/HomeTab";
 import JournalTab from "./tabs/JournalTab";
 import MoodTab from "./tabs/MoodTab";
@@ -45,6 +46,7 @@ export default function App() {
   const handleOnboardingComplete = async (
     name: string,
     chosenTheme: "light" | "dark",
+    avatarId: string,
   ) => {
     setTheme(chosenTheme);
     localStorage.setItem("kenori_theme", chosenTheme);
@@ -53,7 +55,7 @@ export default function App() {
       name,
       themePreference: chosenTheme,
       bio: "",
-      avatarHairStyle: "short",
+      avatarHairStyle: avatarId,
       avatarSkinTone: "medium",
       avatarOutfitColor: "pink",
     });
@@ -114,6 +116,7 @@ export default function App() {
           {activeTab === "profile" && (
             <ProfileTab userData={userData} isLoading={isLoading} />
           )}
+          {activeTab === "chat" && <ChatTab userName={userName} />}
         </main>
         <TabBar active={activeTab} onChange={setActiveTab} />
       </div>

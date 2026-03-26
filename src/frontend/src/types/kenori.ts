@@ -1,4 +1,4 @@
-export type ActiveTab = "home" | "journal" | "mood" | "profile";
+export type ActiveTab = "home" | "journal" | "mood" | "profile" | "chat";
 
 export const MOOD_META: Record<
   string,
@@ -27,4 +27,24 @@ export const CALMING_RESPONSES = [
   "You are more than your thoughts. 🌸",
   "Small steps still move you forward. 🐾",
   "You showed up today. That already counts. ✨",
+];
+
+export const MOOD_FLIP_RESPONSES = [
+  "I am still figuring things out, and that's okay.",
+  "I don't have to solve everything right now.",
+  "I've felt overwhelmed before and found my way through.",
+  "This feeling is temporary. I am not stuck forever.",
+  "I am allowed to take things one small step at a time.",
+  "I don't need to be perfect. I just need to keep going.",
+  "I am doing my best with what I have today.",
+  "Even on hard days, I am still worthy of care.",
+  "I can rest without guilt. Rest is part of healing.",
+  "My thoughts are not facts. I can choose a gentler story.",
+  "I am safe in this moment, even if things feel uncertain.",
+  "Something good is still possible, even today.",
+  "I am more resilient than I sometimes remember.",
+  "It's okay to feel this way. It doesn't define me.",
+  "I trust myself to handle what comes next.",
+  "Breathing slowly is enough right now.",
+  "I have survived every hard day so far.",
 ];

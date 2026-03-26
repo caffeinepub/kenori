@@ -4,10 +4,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Plus, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type { AllUserData } from "../backend.d";
 import AvatarPreview from "../components/AvatarPreview";
+import FunTimeCard from "../components/FunTimeCard";
 import {
   Mood,
   useAddNote,
@@ -16,6 +17,7 @@ import {
 } from "../hooks/useQueries";
 import type { ActiveTab } from "../types/kenori";
 import { CALMING_RESPONSES, MOOD_META } from "../types/kenori";
+import { getCalmPoints } from "../utils/calmPoints";
 import { formatEntryDate } from "../utils/dateFormat";
 
 interface Props {
@@ -66,11 +68,16 @@ export default function HomeTab({
   const [dumpText, setDumpText] = useState("");
   const [dumpResponse, setDumpResponse] = useState<string | null>(null);
   const [dumpReleased, setDumpReleased] = useState(false);
+  const [calmPoints, setCalmPoints] = useState(() => getCalmPoints());
+
+  useEffect(() => {
+    const handler = () => setCalmPoints(getCalmPoints());
+    window.addEventListener("calmpoints", handler);
+    return () => window.removeEventListener("calmpoints", handler);
+  }, []);
 
   const profile = userData?.profile;
-  const hairStyle = profile?.avatarHairStyle || "short";
-  const skinTone = profile?.avatarSkinTone || "medium";
-  const outfitColor = profile?.avatarOutfitColor || "pink";
+  const avatarId = profile?.avatarHairStyle || "preset_1";
 
   const todayMood = useMemo(() => {
     if (!userData?.moodLog) return null;
@@ -159,14 +166,9 @@ export default function HomeTab({
         className="flex items-center gap-3"
       >
         <div className="rounded-full bg-muted/50 p-1.5 shrink-0">
-          <AvatarPreview
-            hairStyle={hairStyle}
-            skinTone={skinTone}
-            outfitColor={outfitColor}
-            size="sm"
-          />
+          <AvatarPreview avatarId={avatarId} size={44} />
         </div>
-        <div>
+        <div className="flex-1">
           <p className="text-muted-foreground text-sm">
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
@@ -174,9 +176,19 @@ export default function HomeTab({
               day: "numeric",
             })}
           </p>
-          <h1 className="font-heading text-2xl font-bold text-foreground mt-0.5">
-            {getGreeting()}, {userName} ✨
-          </h1>
+          <div className="flex items-center justify-between gap-2 mt-0.5">
+            <h1 className="font-heading text-2xl font-bold text-foreground">
+              {getGreeting()}, {userName} ✨
+            </h1>
+            {calmPoints > 0 && (
+              <span
+                data-ocid="home.calm_points.pill"
+                className="text-xs text-muted-foreground shrink-0"
+              >
+                🌙 {calmPoints} calm {calmPoints === 1 ? "point" : "points"}
+              </span>
+            )}
+          </div>
         </div>
       </motion.div>
 
@@ -475,6 +487,15 @@ export default function HomeTab({
             </motion.div>
           )}
         </AnimatePresence>
+      </motion.div>
+
+      {/* Today's Fun Time card */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.45 }}
+      >
+        <FunTimeCard />
       </motion.div>
 
       <p className="text-xs text-center text-muted-foreground pb-2">

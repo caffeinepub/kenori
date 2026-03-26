@@ -2,12 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { DEFAULT_AVATAR_ID } from "@/config/avatarPresets";
 import { Camera, Loader2 } from "lucide-react";
 import { motion } from "motion/react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import type { AllUserData } from "../backend.d";
 import AvatarPreview from "../components/AvatarPreview";
+import AvatarSelectorGrid from "../components/AvatarSelectorGrid";
 import { useSaveProfile } from "../hooks/useQueries";
 import { useStorageClient } from "../hooks/useStorageClient";
 
@@ -15,32 +17,6 @@ interface Props {
   userData: AllUserData | null | undefined;
   isLoading: boolean;
 }
-
-const HAIR_OPTIONS = [
-  { value: "short", label: "Short" },
-  { value: "long", label: "Long Straight" },
-  { value: "waves", label: "Soft Waves" },
-  { value: "ponytail", label: "Ponytail" },
-  { value: "bun", label: "Messy Bun" },
-];
-
-const SKIN_OPTIONS = [
-  { value: "porcelain", label: "Porcelain", color: "#F5DDC8" },
-  { value: "light", label: "Light", color: "#EEC9A0" },
-  { value: "medium", label: "Medium", color: "#C88C5E" },
-  { value: "tan", label: "Tan", color: "#B07438" },
-  { value: "brown", label: "Brown", color: "#7A4828" },
-  { value: "deep", label: "Deep", color: "#4A2510" },
-];
-
-const OUTFIT_OPTIONS = [
-  { value: "hoodie", label: "Hoodie", color: "#88A8C0" },
-  { value: "tshirt", label: "Oversized T-Shirt", color: "#B8A898" },
-  { value: "sweater", label: "Sweater", color: "#9888B8" },
-  { value: "kurti", label: "Kurti", color: "#88A898" },
-  { value: "dress", label: "Dress", color: "#B88898" },
-  { value: "shirt", label: "Casual Shirt", color: "#8898B8" },
-];
 
 export default function ProfileTab({ userData, isLoading }: Props) {
   const profile = userData?.profile;
@@ -50,12 +26,9 @@ export default function ProfileTab({ userData, isLoading }: Props) {
 
   const [name, setName] = useState(profile?.name ?? "");
   const [bio, setBio] = useState(profile?.bio ?? "");
-  const [hairStyle, setHairStyle] = useState(
-    profile?.avatarHairStyle || "short",
+  const [avatarId, setAvatarId] = useState(
+    profile?.avatarHairStyle || DEFAULT_AVATAR_ID,
   );
-  const [skinTone, setSkinTone] = useState(profile?.avatarSkinTone || "medium");
-  // avatarOutfitColor now stores outfit type (hoodie / tshirt / etc.)
-  const [outfit, setOutfit] = useState(profile?.avatarOutfitColor || "tshirt");
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(
     profile?.profilePhotoUrl,
   );
@@ -84,9 +57,9 @@ export default function ProfileTab({ userData, isLoading }: Props) {
         name: name || profile?.name || "",
         bio,
         themePreference: profile?.themePreference || "light",
-        avatarHairStyle: hairStyle,
-        avatarSkinTone: skinTone,
-        avatarOutfitColor: outfit,
+        avatarHairStyle: avatarId,
+        avatarSkinTone: profile?.avatarSkinTone || "medium",
+        avatarOutfitColor: profile?.avatarOutfitColor || "pink",
         profilePhotoUrl: photoUrl,
       });
       toast.success("Profile saved 🌸");
@@ -118,126 +91,22 @@ export default function ProfileTab({ userData, isLoading }: Props) {
         </p>
       </motion.div>
 
-      {/* Avatar Customizer */}
+      {/* Avatar Selector */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="kenori-card space-y-5"
+        className="kenori-card space-y-4"
         data-ocid="profile.avatar.card"
       >
-        <h2 className="font-heading text-lg font-semibold">My Avatar</h2>
-
-        {/* Live preview */}
-        <div className="flex justify-center">
-          <div className="rounded-3xl bg-gradient-to-b from-muted/60 to-muted/30 p-5 shadow-inner">
-            <AvatarPreview
-              hairStyle={hairStyle}
-              skinTone={skinTone}
-              outfitColor={outfit}
-              size="lg"
-            />
+        <div className="flex items-center gap-3">
+          <AvatarPreview avatarId={avatarId} size={56} />
+          <div>
+            <h2 className="font-heading text-lg font-semibold">Your Avatar</h2>
+            <p className="text-xs text-muted-foreground">Tap to change</p>
           </div>
         </div>
-
-        {/* Hair Style */}
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Hair Style
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {HAIR_OPTIONS.map((opt) => {
-              const sel = hairStyle === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setHairStyle(opt.value)}
-                  data-ocid="profile.avatar.toggle"
-                  className={`mood-chip border-2 transition-all ${
-                    sel
-                      ? "bg-primary/20 border-primary text-foreground font-semibold"
-                      : "bg-muted/60 border-transparent text-muted-foreground"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Skin Tone */}
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Skin Tone
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {SKIN_OPTIONS.map((opt) => {
-              const sel = skinTone === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setSkinTone(opt.value)}
-                  data-ocid="profile.skin.toggle"
-                  style={
-                    sel
-                      ? { background: `${opt.color}55`, borderColor: opt.color }
-                      : {}
-                  }
-                  className={`mood-chip border-2 gap-1.5 ${
-                    sel
-                      ? "font-semibold"
-                      : "bg-muted/60 border-transparent text-muted-foreground"
-                  }`}
-                >
-                  <span
-                    className="w-3 h-3 rounded-full shrink-0 inline-block border border-black/10"
-                    style={{ background: opt.color }}
-                  />
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Outfit */}
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Outfit
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {OUTFIT_OPTIONS.map((opt) => {
-              const sel = outfit === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setOutfit(opt.value)}
-                  data-ocid="profile.outfit.toggle"
-                  style={
-                    sel
-                      ? { background: `${opt.color}55`, borderColor: opt.color }
-                      : {}
-                  }
-                  className={`mood-chip border-2 gap-1.5 ${
-                    sel
-                      ? "font-semibold"
-                      : "bg-muted/60 border-transparent text-muted-foreground"
-                  }`}
-                >
-                  <span
-                    className="w-3 h-3 rounded-full shrink-0 inline-block border border-black/10"
-                    style={{ background: opt.color }}
-                  />
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <AvatarSelectorGrid selected={avatarId} onChange={setAvatarId} />
       </motion.div>
 
       {/* About Me */}
@@ -261,12 +130,7 @@ export default function ProfileTab({ userData, isLoading }: Props) {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <AvatarPreview
-                  hairStyle={hairStyle}
-                  skinTone={skinTone}
-                  outfitColor={outfit}
-                  size="md"
-                />
+                <AvatarPreview avatarId={avatarId} size={80} />
               )}
             </div>
             <button
